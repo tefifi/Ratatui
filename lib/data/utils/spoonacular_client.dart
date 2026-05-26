@@ -9,6 +9,7 @@ class SpoonacularClient {
   static Future<Map<String, dynamic>> searchRecipes({
     String? intolerances,
     String? diet,
+    String? query,          // ← AÑADIDO: necesario para diabetes, hipertensión, hipotiroidismo
     int? maxCalories,
     int number = 20,
     int offset = 0,
@@ -21,6 +22,7 @@ class SpoonacularClient {
       if (intolerances != null && intolerances.isNotEmpty)
         'intolerances': intolerances,
       if (diet != null) 'diet': diet,
+      if (query != null && query.isNotEmpty) 'query': query,  // ← AÑADIDO
       if (maxCalories != null) 'maxCalories': maxCalories.toString(),
     };
 

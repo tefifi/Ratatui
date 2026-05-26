@@ -21,6 +21,14 @@ class Receta {
     this.esFavorito = false,
   });
 
+  // CORREGIDO: el dominio real es img.spoonacular.com/recipes/
+  // complexSearch devuelve solo el nombre de archivo, detail devuelve URL completa
+  static String _buildImageUrl(String raw) {
+    if (raw.isEmpty) return '';
+    if (raw.startsWith('http')) return raw;
+    return 'https://img.spoonacular.com/recipes/$raw';
+  }
+
   factory Receta.fromSpoonacularSearch(Map<String, dynamic> map) {
     double? getNutrient(String name) {
       final nutrients =
@@ -35,7 +43,7 @@ class Receta {
     return Receta(
       spoonacularId: map['id'] as int,
       nombre: map['title'] as String,
-      imagenUrl: map['image'] as String? ?? '',
+      imagenUrl: _buildImageUrl(map['image'] as String? ?? ''),
       kcal: getNutrient('Calories'),
       proteinaG: getNutrient('Protein'),
       fibraG: getNutrient('Fiber'),
