@@ -13,17 +13,23 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final _emailCtrl    = TextEditingController();
+  final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
-  final _nombreCtrl   = TextEditingController();
+  final _nombreCtrl = TextEditingController();
+
   bool _esRegistro = false;
-  bool _loading    = false;
+  bool _loading = false;
+  bool _rememberMe = false;
+  bool _obscurePassword = true;
   String? _error;
+
+  // Paleta centralizada
+  static const _verde = Color(0xFF2D5C2B);
+  static const _naranja = Color(0xFFFF8A00);
 
   @override
   void initState() {
     super.initState();
-    // Si ya hay sesión activa, saltar al home
     final session = supabase.auth.currentSession;
     if (session != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _irAlHome());
@@ -38,7 +44,10 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _submit() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       if (_esRegistro) {
         final res = await supabase.auth.signUp(
@@ -47,10 +56,10 @@ class _LoginPageState extends State<LoginPage> {
           data: {'nombre': _nombreCtrl.text.trim()},
         );
         if (res.user != null && mounted) {
-          // Nuevo usuario → va a configurar perfil
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => const PerfilPage(esPrimeraVez: true)),
+            MaterialPageRoute(
+                builder: (_) => const PerfilPage(esPrimeraVez: true)),
           );
         }
       } else {
@@ -80,106 +89,378 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 48),
-              // Logo
-              Row(children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF7BBF3A),
-                    shape: BoxShape.circle,
+      backgroundColor: Colors.white,
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ENCABEZADO
+            _Header(esRegistro: _esRegistro),
+
+            // FORMULARIO
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _esRegistro ? 'Crear cuenta' : 'Iniciar sesión',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1A1A1A),
+                    ),
                   ),
-                  child: const Center(
-                    child: Text('🌿', style: TextStyle(fontSize: 22)),
+                  const SizedBox(height: 24),
+
+                  // Nombre (solo en registro)
+                  if (_esRegistro) ...[
+                    const _Label('Nombre'),
+                    _Field(
+                      controller: _nombreCtrl,
+                      hint: 'Tu nombre',
+                      icon: Icons.person_outline,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  // Email
+                  const _Label('Email'),
+                  _Field(
+                    controller: _emailCtrl,
+                    hint: 'tucorreo@email.com',
+                    icon: Icons.mail_outline,
+                    keyboardType: TextInputType.emailAddress,
                   ),
-                ),
-                const SizedBox(width: 12),
-                const Text(
-                  'Linwini',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF2D5016),
+                  const SizedBox(height: 16),
+
+                  // Password
+                  const _Label('Password'),
+                  _Field(
+                    controller: _passwordCtrl,
+                    hint: '••••••••',
+                    icon: Icons.lock_outline,
+                    obscureText: _obscurePassword,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                        color: Colors.grey,
+                      ),
+                      onPressed: () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
+                    ),
                   ),
-                ),
-              ]),
-              const SizedBox(height: 8),
-              const Text(
-                'Recetas para tu bienestar',
-                style: TextStyle(color: Colors.grey, fontSize: 14),
-              ),
-              const SizedBox(height: 48),
-              Text(
-                _esRegistro ? 'Crear cuenta' : 'Iniciar sesión',
-                style: const TextStyle(
-                    fontSize: 22, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 24),
-              if (_esRegistro) ...[
-                TextField(
-                  controller: _nombreCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Nombre',
-                    prefixIcon: Icon(Icons.person_outline),
+
+                  // Error
+                  if (_error != null) ...[
+                    const SizedBox(height: 10),
+                    Text(_error!,
+                        style:
+                            const TextStyle(color: Colors.red, fontSize: 13)),
+                  ],
+
+                  // Remember me / Forgot password
+                  if (!_esRegistro) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: Checkbox(
+                                value: _rememberMe,
+                                activeColor: _verde,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4)),
+                                onChanged: (val) =>
+                                    setState(() => _rememberMe = val!),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Text('Remember Me',
+                                style: TextStyle(
+                                    color: Colors.grey, fontSize: 13)),
+                          ],
+                        ),
+                        TextButton(
+                          onPressed: () {},
+                          child: const Text(
+                            'Forgot Password?',
+                            style: TextStyle(
+                                color: _naranja,
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ] else ...[
+                    const SizedBox(height: 24),
+                  ],
+
+                  const SizedBox(height: 16),
+
+                  // BOTÓN PRINCIPAL
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton(
+                      onPressed: _loading ? null : _submit,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _naranja,
+                        foregroundColor: Colors.white,
+                        disabledBackgroundColor:
+                            _naranja.withValues(alpha: 0.6),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(26),
+                        ),
+                        elevation: 2,
+                      ),
+                      child: _loading
+                          ? const SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: Colors.white))
+                          : Text(
+                              _esRegistro ? 'Registrarme' : 'Entrar',
+                              style: const TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-              ],
-              TextField(
-                controller: _emailCtrl,
-                keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
-                  labelText: 'Correo',
-                  prefixIcon: Icon(Icons.mail_outline),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _passwordCtrl,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Contraseña',
-                  prefixIcon: Icon(Icons.lock_outline),
-                ),
-              ),
-              if (_error != null) ...[
-                const SizedBox(height: 12),
-                Text(_error!,
-                    style: const TextStyle(color: Colors.red, fontSize: 13)),
-              ],
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _loading ? null : _submit,
-                child: _loading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white))
-                    : Text(_esRegistro ? 'Registrarme' : 'Entrar'),
-              ),
-              const SizedBox(height: 16),
-              Center(
-                child: TextButton(
-                  onPressed: () =>
-                      setState(() => _esRegistro = !_esRegistro),
-                  child: Text(
-                    _esRegistro
-                        ? '¿Ya tienes cuenta? Inicia sesión'
-                        : '¿No tienes cuenta? Regístrate',
-                    style: const TextStyle(color: Color(0xFF2D5016)),
+
+                  const SizedBox(height: 24),
+
+                  // TOGGLE LOGIN / REGISTRO
+                  Center(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _esRegistro = !_esRegistro),
+                      child: RichText(
+                        text: TextSpan(
+                          text: _esRegistro
+                              ? '¿Ya tienes cuenta? '
+                              : '¿No tienes cuenta? ',
+                          style:
+                              const TextStyle(color: Colors.grey, fontSize: 14),
+                          children: const [
+                            TextSpan(
+                              text: 'Regístrate',
+                              style: TextStyle(
+                                color: _naranja,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
+                  const SizedBox(height: 32),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── ENCABEZADO CON ONDA ──────────────────────────────────────────────────────
+class _Header extends StatelessWidget {
+  final bool esRegistro;
+  const _Header({required this.esRegistro});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipPath(
+      clipper: _WaveClipper(),
+      child: Container(
+        width: double.infinity,
+        height: 300,
+        color: const Color(0xFF2D5C2B),
+        child: Stack(
+          children: [
+            // Círculos decorativos de fondo
+            Positioned(
+              top: -60,
+              right: -60,
+              child: _Circle(size: 220, opacity: 0.07),
+            ),
+            Positioned(
+              top: 40,
+              right: -30,
+              child: _Circle(size: 140, opacity: 0.07),
+            ),
+            Positioned(
+              bottom: 20,
+              left: -50,
+              child: _Circle(size: 160, opacity: 0.06),
+            ),
+
+            // Logo + título
+            SafeArea(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 90,
+                      height: 90,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 3),
+                      ),
+                      child: ClipOval(
+                        child: Image.asset(
+                          'assets/images/logo_ratatui.png',
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Ratatui',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'RECETAS PARA TU BIENESTAR',
+                      style: TextStyle(
+                        color: Color(0xFFFFD166),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Círculo decorativo del fondo del header
+class _Circle extends StatelessWidget {
+  final double size;
+  final double opacity;
+  const _Circle({required this.size, required this.opacity});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: Colors.white.withValues(alpha: opacity * 3),
+          width: 1.5,
+        ),
+        color: Colors.white.withValues(alpha: opacity),
+      ),
+    );
+  }
+}
+
+// ── ONDA INFERIOR DEL HEADER ─────────────────────────────────────────────────
+class _WaveClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    path.lineTo(0, size.height - 30);
+    path.quadraticBezierTo(
+      size.width / 4,
+      size.height,
+      size.width / 2,
+      size.height - 20,
+    );
+    path.quadraticBezierTo(
+      size.width - size.width / 4,
+      size.height - 40,
+      size.width,
+      size.height - 10,
+    );
+    path.lineTo(size.width, 0);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+}
+
+// ── HELPERS DE FORMULARIO ────────────────────────────────────────────────────
+class _Label extends StatelessWidget {
+  final String text;
+  const _Label(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8, left: 4),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: Color(0xFF333333),
+        ),
+      ),
+    );
+  }
+}
+
+class _Field extends StatelessWidget {
+  final TextEditingController controller;
+  final String hint;
+  final IconData icon;
+  final bool obscureText;
+  final TextInputType keyboardType;
+  final Widget? suffixIcon;
+
+  const _Field({
+    required this.controller,
+    required this.hint,
+    required this.icon,
+    this.obscureText = false,
+    this.keyboardType = TextInputType.text,
+    this.suffixIcon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: const TextStyle(color: Colors.black38),
+        prefixIcon: Icon(icon, color: Colors.black38),
+        suffixIcon: suffixIcon,
+        contentPadding: const EdgeInsets.symmetric(vertical: 16),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(26),
+          borderSide: const BorderSide(color: Colors.black12),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(26),
+          borderSide: const BorderSide(color: Color(0xFFFF8A00), width: 1.5),
         ),
       ),
     );

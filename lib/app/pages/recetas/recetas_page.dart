@@ -142,7 +142,7 @@ class _RecetasPageState extends State<RecetasPage> {
                 child: Text('🌿', style: TextStyle(fontSize: 14))),
           ),
           const SizedBox(width: 8),
-          const Text('Linwini'),
+          const Text('Ratatui'),
         ]),
         actions: [
           if (_loadingMas)

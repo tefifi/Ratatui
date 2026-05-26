@@ -24,7 +24,7 @@ class LinwiniApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Linwini',
+      title: 'Ratatui',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       home: const LoginPage(),
