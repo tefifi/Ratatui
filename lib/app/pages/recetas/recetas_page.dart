@@ -20,9 +20,9 @@ class RecetasPage extends StatefulWidget {
 }
 
 class _RecetasPageState extends State<RecetasPage> {
-  final _recetaRepo   = SpoonacularRecetaRepository();
+  final _recetaRepo = SpoonacularRecetaRepository();
   final _favoritoRepo = SupabaseFavoritoRepository();
-  final _profileRepo  = SupabaseProfileRepository();
+  final _profileRepo = SupabaseProfileRepository();
 
   List<Receta> _recetas = [];
   List<Padecimiento> _padecimientos = [];
@@ -39,11 +39,14 @@ class _RecetasPageState extends State<RecetasPage> {
   }
 
   Future<void> _cargarTodo() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       final userId = supabase.auth.currentUser!.id;
       final profile = await _profileRepo.getProfile(userId);
-      final pads    = await _profileRepo.getUserPadecimientos(userId);
+      final pads = await _profileRepo.getUserPadecimientos(userId);
 
       final recetas = await GetRecetasUseCase(_recetaRepo).execute(
         padecimientos: pads,
@@ -55,9 +58,8 @@ class _RecetasPageState extends State<RecetasPage> {
           .from('favoritos')
           .select('spoonacular_id')
           .eq('usuario_id', userId);
-      final favSet = (favIds as List)
-          .map((r) => r['spoonacular_id'] as int)
-          .toSet();
+      final favSet =
+          (favIds as List).map((r) => r['spoonacular_id'] as int).toSet();
       for (final r in recetas) {
         r.esFavorito = favSet.contains(r.spoonacularId);
       }
@@ -70,14 +72,17 @@ class _RecetasPageState extends State<RecetasPage> {
         _loading = false;
       });
     } catch (e) {
-      setState(() { _error = e.toString(); _loading = false; });
+      setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
     }
   }
 
   Future<void> _toggleFavorito(Receta receta) async {
     final userId = supabase.auth.currentUser!.id;
-    final nuevoEstado = await ToggleFavoritoUseCase(_favoritoRepo)
-        .execute(userId, receta);
+    final nuevoEstado =
+        await ToggleFavoritoUseCase(_favoritoRepo).execute(userId, receta);
     setState(() => receta.esFavorito = nuevoEstado);
   }
 
@@ -99,14 +104,15 @@ class _RecetasPageState extends State<RecetasPage> {
       appBar: AppBar(
         title: Row(children: [
           Container(
-            width: 28, height: 28,
+            width: 28,
+            height: 28,
             decoration: const BoxDecoration(
-              color: Color(0xFF7BBF3A), shape: BoxShape.circle),
-            child: const Center(
-                child: Text('🌿', style: TextStyle(fontSize: 14))),
+                color: Color(0xFF7BBF3A), shape: BoxShape.circle),
+            child:
+                const Center(child: Text('🌿', style: TextStyle(fontSize: 14))),
           ),
           const SizedBox(width: 8),
-          const Text('Linwini'),
+          const Text('Ratatui'),
         ]),
         actions: [
           IconButton(
@@ -132,8 +138,8 @@ class _RecetasPageState extends State<RecetasPage> {
             Navigator.push(context,
                 MaterialPageRoute(builder: (_) => const FavoritosPage()));
           } else if (i == 2) {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (_) => const PerfilPage()));
+            Navigator.push(
+                context, MaterialPageRoute(builder: (_) => const PerfilPage()));
           }
         },
         items: const [
@@ -159,9 +165,7 @@ class _RecetasPageState extends State<RecetasPage> {
             children: [
               Text(
                 'Recomendadas para ti',
-                style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 13),
+                style: TextStyle(color: Colors.grey[600], fontSize: 13),
               ),
               Text(
                 '${_indiceActual + 1} / ${_recetas.length}',
@@ -210,8 +214,7 @@ class _RecetasPageState extends State<RecetasPage> {
               Text(_error!, textAlign: TextAlign.center),
               const SizedBox(height: 16),
               ElevatedButton(
-                  onPressed: _cargarTodo,
-                  child: const Text('Reintentar')),
+                  onPressed: _cargarTodo, child: const Text('Reintentar')),
             ],
           ),
         ),
@@ -223,8 +226,7 @@ class _RecetasPageState extends State<RecetasPage> {
           children: [
             Text('🥗', style: TextStyle(fontSize: 48)),
             SizedBox(height: 12),
-            Text('No se encontraron recetas',
-                style: TextStyle(fontSize: 16)),
+            Text('No se encontraron recetas', style: TextStyle(fontSize: 16)),
             SizedBox(height: 8),
             Text('Intenta ajustar tu perfil',
                 style: TextStyle(color: Colors.grey)),
@@ -261,16 +263,19 @@ class _RecetaCard extends StatelessWidget {
               fit: StackFit.expand,
               children: [
                 receta.imagenUrl.isNotEmpty
-                    ? Image.network(receta.imagenUrl, fit: BoxFit.cover,
+                    ? Image.network(receta.imagenUrl,
+                        fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => _placeholder())
                     : _placeholder(),
                 // Botón favorito
                 Positioned(
-                  top: 12, right: 12,
+                  top: 12,
+                  right: 12,
                   child: GestureDetector(
                     onTap: onFavorito,
                     child: Container(
-                      width: 40, height: 40,
+                      width: 40,
+                      height: 40,
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.9),
                         shape: BoxShape.circle,
@@ -305,11 +310,16 @@ class _RecetaCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Row(children: [
-                    _Nutriente(valor: receta.kcal, unidad: 'kcal', label: 'Calorías'),
+                    _Nutriente(
+                        valor: receta.kcal, unidad: 'kcal', label: 'Calorías'),
                     const SizedBox(width: 8),
-                    _Nutriente(valor: receta.proteinaG, unidad: 'g', label: 'Proteína'),
+                    _Nutriente(
+                        valor: receta.proteinaG,
+                        unidad: 'g',
+                        label: 'Proteína'),
                     const SizedBox(width: 8),
-                    _Nutriente(valor: receta.fibraG, unidad: 'g', label: 'Fibra'),
+                    _Nutriente(
+                        valor: receta.fibraG, unidad: 'g', label: 'Fibra'),
                   ]),
                   const Spacer(),
                   Row(
@@ -326,8 +336,7 @@ class _RecetaCard extends StatelessWidget {
                       ),
                       Text(
                         'Toca para ver detalle',
-                        style: TextStyle(
-                            color: Colors.grey[500], fontSize: 12),
+                        style: TextStyle(color: Colors.grey[500], fontSize: 12),
                       ),
                       IconButton(
                         onPressed: onSiguiente,
@@ -347,8 +356,7 @@ class _RecetaCard extends StatelessWidget {
 
   Widget _placeholder() => Container(
         color: const Color(0xFFC0DD97),
-        child: const Center(
-            child: Text('🥗', style: TextStyle(fontSize: 48))),
+        child: const Center(child: Text('🥗', style: TextStyle(fontSize: 48))),
       );
 }
 
