@@ -29,8 +29,10 @@ class _RecetasPageState extends State<RecetasPage> {
   double? _imc;
   int _indiceActual = 0;
   bool _loading = true;
+  bool _loadingMas = false;   // ← carga silenciosa al paginar
   String? _error;
   int _navIndex = 0;
+  int _offset = 0;            // ← offset para paginación real
 
   @override
   void initState() {
@@ -39,7 +41,7 @@ class _RecetasPageState extends State<RecetasPage> {
   }
 
   Future<void> _cargarTodo() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() { _loading = true; _error = null; _offset = 0; });
     try {
       final userId = supabase.auth.currentUser!.id;
       final profile = await _profileRepo.getProfile(userId);
@@ -48,29 +50,56 @@ class _RecetasPageState extends State<RecetasPage> {
       final recetas = await GetRecetasUseCase(_recetaRepo).execute(
         padecimientos: pads,
         imc: profile?.imc,
+        offset: 0,
       );
 
-      // Marcar las que ya son favoritas
-      final favIds = await supabase
-          .from('favoritos')
-          .select('spoonacular_id')
-          .eq('usuario_id', userId);
-      final favSet = (favIds as List)
-          .map((r) => r['spoonacular_id'] as int)
-          .toSet();
-      for (final r in recetas) {
-        r.esFavorito = favSet.contains(r.spoonacularId);
-      }
+      await _marcarFavoritos(recetas);
 
       setState(() {
         _padecimientos = pads;
         _imc = profile?.imc;
         _recetas = recetas;
         _indiceActual = 0;
+        _offset = recetas.length;
         _loading = false;
       });
     } catch (e) {
       setState(() { _error = e.toString(); _loading = false; });
+    }
+  }
+
+  // Carga más recetas en segundo plano sin reiniciar la lista
+  Future<void> _cargarMas() async {
+    if (_loadingMas) return;
+    setState(() => _loadingMas = true);
+    try {
+      final nuevas = await GetRecetasUseCase(_recetaRepo).execute(
+        padecimientos: _padecimientos,
+        imc: _imc,
+        offset: _offset,
+      );
+      await _marcarFavoritos(nuevas);
+      setState(() {
+        _recetas.addAll(nuevas);
+        _offset += nuevas.length;
+        _loadingMas = false;
+      });
+    } catch (_) {
+      setState(() => _loadingMas = false);
+    }
+  }
+
+  Future<void> _marcarFavoritos(List<Receta> recetas) async {
+    final userId = supabase.auth.currentUser!.id;
+    final favIds = await supabase
+        .from('favoritos')
+        .select('spoonacular_id')
+        .eq('usuario_id', userId);
+    final favSet = (favIds as List)
+        .map((r) => r['spoonacular_id'] as int)
+        .toSet();
+    for (final r in recetas) {
+      r.esFavorito = favSet.contains(r.spoonacularId);
     }
   }
 
@@ -84,8 +113,15 @@ class _RecetasPageState extends State<RecetasPage> {
   void _siguiente() {
     if (_indiceActual < _recetas.length - 1) {
       setState(() => _indiceActual++);
+      // Pre-cargar más cuando queden 5 recetas
+      if (_indiceActual >= _recetas.length - 5) _cargarMas();
     } else {
-      _cargarTodo();
+      // Al final de todo, cargar más
+      _cargarMas().then((_) {
+        if (_indiceActual < _recetas.length - 1) {
+          setState(() => _indiceActual++);
+        }
+      });
     }
   }
 
@@ -109,10 +145,19 @@ class _RecetasPageState extends State<RecetasPage> {
           const Text('Linwini'),
         ]),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _cargarTodo,
-          ),
+          if (_loadingMas)
+            const Padding(
+              padding: EdgeInsets.only(right: 16),
+              child: SizedBox(
+                width: 20, height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: _cargarTodo,
+            ),
         ],
       ),
       body: _loading
@@ -159,9 +204,7 @@ class _RecetasPageState extends State<RecetasPage> {
             children: [
               Text(
                 'Recomendadas para ti',
-                style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 13),
+                style: TextStyle(color: Colors.grey[600], fontSize: 13),
               ),
               Text(
                 '${_indiceActual + 1} / ${_recetas.length}',
@@ -254,17 +297,25 @@ class _RecetaCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
-          // Imagen
           Expanded(
             flex: 5,
             child: Stack(
               fit: StackFit.expand,
               children: [
                 receta.imagenUrl.isNotEmpty
-                    ? Image.network(receta.imagenUrl, fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _placeholder())
+                    ? Image.network(
+                        receta.imagenUrl,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (_, child, progress) => progress == null
+                            ? child
+                            : Container(
+                                color: const Color(0xFFC0DD97),
+                                child: const Center(
+                                    child: CircularProgressIndicator()),
+                              ),
+                        errorBuilder: (_, __, ___) => _placeholder(),
+                      )
                     : _placeholder(),
-                // Botón favorito
                 Positioned(
                   top: 12, right: 12,
                   child: GestureDetector(
@@ -288,7 +339,6 @@ class _RecetaCard extends StatelessWidget {
               ],
             ),
           ),
-          // Info
           Expanded(
             flex: 4,
             child: Padding(

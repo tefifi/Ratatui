@@ -30,6 +30,8 @@ class Receta {
   }
 
   factory Receta.fromSpoonacularSearch(Map<String, dynamic> map) {
+      final rawImage = map['image'] as String? ?? '';
+  print('IMAGE RAW: $rawImage'); // ← agrega esto
     double? getNutrient(String name) {
       final nutrients =
           (map['nutrition']?['nutrients'] as List<dynamic>?) ?? [];
