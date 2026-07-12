@@ -7,6 +7,7 @@ import '../../../data/utils/supabase_client.dart';
 import '../../../domain/entities/receta.dart';
 import '../../../domain/usecases/usecases.dart';
 import '../../styles/app_theme.dart';
+import '../../widgets/nutriente_ring.dart';
 
 class DetallePage extends StatefulWidget {
   final Receta receta;
@@ -144,25 +145,11 @@ class _DetallePageState extends State<DetallePage> {
                 const SizedBox(height: 20),
 
                 // Nutrientes
-                Row(children: [
-                  _NutrienteChip(
-                      valor: r.kcal,
-                      unidad: 'kcal',
-                      label: 'Calorías',
-                      icono: Icons.local_fire_department_rounded),
-                  const SizedBox(width: 10),
-                  _NutrienteChip(
-                      valor: r.proteinaG,
-                      unidad: 'g',
-                      label: 'Proteína',
-                      icono: Icons.bolt_rounded),
-                  const SizedBox(width: 10),
-                  _NutrienteChip(
-                      valor: r.fibraG,
-                      unidad: 'g',
-                      label: 'Fibra',
-                      icono: Icons.eco_rounded),
-                ]),
+                NutrienteRingRow(
+                  kcal: r.kcal,
+                  proteinaG: r.proteinaG,
+                  fibraG: r.fibraG,
+                ),
                 const SizedBox(height: 28),
 
                 // Ingredientes / Preparación
@@ -208,48 +195,6 @@ class _CircleButton extends StatelessWidget {
           ],
         ),
         child: Icon(icon, size: 20, color: iconColor ?? AppTheme.bosque),
-      ),
-    );
-  }
-}
-
-class _NutrienteChip extends StatelessWidget {
-  final double? valor;
-  final String unidad;
-  final String label;
-  final IconData icono;
-
-  const _NutrienteChip(
-      {required this.valor,
-      required this.unidad,
-      required this.label,
-      required this.icono});
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: AppTheme.salvia,
-          borderRadius: BorderRadius.circular(AppTheme.radioChico),
-        ),
-        child: Column(
-          children: [
-            Icon(icono, size: 17, color: AppTheme.musgo),
-            const SizedBox(height: 4),
-            Text(
-              valor != null ? '${valor!.toStringAsFixed(1)}$unidad' : '-',
-              style: const TextStyle(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 14,
-                  color: AppTheme.bosque),
-            ),
-            Text(label,
-                style:
-                    const TextStyle(fontSize: 10.5, color: AppTheme.grisTexto)),
-          ],
-        ),
       ),
     );
   }

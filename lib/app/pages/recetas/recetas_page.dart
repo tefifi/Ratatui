@@ -9,6 +9,7 @@ import '../../../domain/entities/padecimiento.dart';
 import '../../../domain/entities/receta.dart';
 import '../../../domain/usecases/usecases.dart';
 import '../../styles/app_theme.dart';
+import '../../widgets/nutriente_ring.dart';
 import '../detalle/detalle_page.dart';
 import '../favoritos/favoritos_page.dart';
 import '../perfil/perfil_page.dart';
@@ -21,19 +22,19 @@ class RecetasPage extends StatefulWidget {
 }
 
 class _RecetasPageState extends State<RecetasPage> {
-  final _recetaRepo   = SpoonacularRecetaRepository();
+  final _recetaRepo = SpoonacularRecetaRepository();
   final _favoritoRepo = SupabaseFavoritoRepository();
-  final _profileRepo  = SupabaseProfileRepository();
+  final _profileRepo = SupabaseProfileRepository();
 
   List<Receta> _recetas = [];
   List<Padecimiento> _padecimientos = [];
   double? _imc;
   int _indiceActual = 0;
   bool _loading = true;
-  bool _loadingMas = false;   // ← carga silenciosa al paginar
+  bool _loadingMas = false; // ← carga silenciosa al paginar
   String? _error;
   int _navIndex = 0;
-  int _offset = 0;            // ← offset para paginación real
+  int _offset = 0; // ← offset para paginación real
 
   @override
   void initState() {
@@ -42,11 +43,15 @@ class _RecetasPageState extends State<RecetasPage> {
   }
 
   Future<void> _cargarTodo() async {
-    setState(() { _loading = true; _error = null; _offset = 0; });
+    setState(() {
+      _loading = true;
+      _error = null;
+      _offset = 0;
+    });
     try {
       final userId = supabase.auth.currentUser!.id;
       final profile = await _profileRepo.getProfile(userId);
-      final pads    = await _profileRepo.getUserPadecimientos(userId);
+      final pads = await _profileRepo.getUserPadecimientos(userId);
 
       final recetas = await GetRecetasUseCase(_recetaRepo).execute(
         padecimientos: pads,
@@ -65,7 +70,10 @@ class _RecetasPageState extends State<RecetasPage> {
         _loading = false;
       });
     } catch (e) {
-      setState(() { _error = e.toString(); _loading = false; });
+      setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
     }
   }
 
@@ -96,9 +104,8 @@ class _RecetasPageState extends State<RecetasPage> {
         .from('favoritos')
         .select('spoonacular_id')
         .eq('usuario_id', userId);
-    final favSet = (favIds as List)
-        .map((r) => r['spoonacular_id'] as int)
-        .toSet();
+    final favSet =
+        (favIds as List).map((r) => r['spoonacular_id'] as int).toSet();
     for (final r in recetas) {
       r.esFavorito = favSet.contains(r.spoonacularId);
     }
@@ -106,8 +113,8 @@ class _RecetasPageState extends State<RecetasPage> {
 
   Future<void> _toggleFavorito(Receta receta) async {
     final userId = supabase.auth.currentUser!.id;
-    final nuevoEstado = await ToggleFavoritoUseCase(_favoritoRepo)
-        .execute(userId, receta);
+    final nuevoEstado =
+        await ToggleFavoritoUseCase(_favoritoRepo).execute(userId, receta);
     setState(() => receta.esFavorito = nuevoEstado);
   }
 
@@ -136,11 +143,12 @@ class _RecetasPageState extends State<RecetasPage> {
       appBar: AppBar(
         title: Row(children: [
           Container(
-            width: 30, height: 30,
+            width: 30,
+            height: 30,
             decoration: const BoxDecoration(
-              color: AppTheme.mostaza, shape: BoxShape.circle),
-            child: const Center(
-                child: Text('🌿', style: TextStyle(fontSize: 15))),
+                color: AppTheme.mostaza, shape: BoxShape.circle),
+            child:
+                const Center(child: Text('🌿', style: TextStyle(fontSize: 15))),
           ),
           const SizedBox(width: 10),
           const Text('Ratatui'),
@@ -150,7 +158,8 @@ class _RecetasPageState extends State<RecetasPage> {
             const Padding(
               padding: EdgeInsets.only(right: 20),
               child: SizedBox(
-                width: 18, height: 18,
+                width: 18,
+                height: 18,
                 child: CircularProgressIndicator(
                     strokeWidth: 2, color: AppTheme.bosque),
               ),
@@ -180,8 +189,8 @@ class _RecetasPageState extends State<RecetasPage> {
             Navigator.push(context,
                 MaterialPageRoute(builder: (_) => const FavoritosPage()));
           } else if (i == 2) {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (_) => const PerfilPage()));
+            Navigator.push(
+                context, MaterialPageRoute(builder: (_) => const PerfilPage()));
           }
         },
         items: const [
@@ -207,7 +216,8 @@ class _RecetasPageState extends State<RecetasPage> {
             children: [
               Text('RECOMENDADAS PARA TI', style: AppTheme.eyebrow),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: AppTheme.salvia,
                   borderRadius: BorderRadius.circular(99),
@@ -215,7 +225,9 @@ class _RecetasPageState extends State<RecetasPage> {
                 child: Text(
                   '${_indiceActual + 1} / ${_recetas.length}',
                   style: const TextStyle(
-                      color: AppTheme.musgo, fontSize: 12, fontWeight: FontWeight.w700),
+                      color: AppTheme.musgo,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700),
                 ),
               ),
             ],
@@ -257,7 +269,8 @@ class _RecetasPageState extends State<RecetasPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 64, height: 64,
+                width: 64,
+                height: 64,
                 decoration: BoxDecoration(
                   color: const Color(0xFFFBEAEA),
                   shape: BoxShape.circle,
@@ -271,7 +284,8 @@ class _RecetasPageState extends State<RecetasPage> {
                   textAlign: TextAlign.center),
               const SizedBox(height: 6),
               Text(_error!,
-                  style: const TextStyle(color: AppTheme.grisTexto, fontSize: 12.5),
+                  style: const TextStyle(
+                      color: AppTheme.grisTexto, fontSize: 12.5),
                   textAlign: TextAlign.center,
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis),
@@ -279,8 +293,7 @@ class _RecetasPageState extends State<RecetasPage> {
               SizedBox(
                 width: 180,
                 child: ElevatedButton(
-                    onPressed: _cargarTodo,
-                    child: const Text('Reintentar')),
+                    onPressed: _cargarTodo, child: const Text('Reintentar')),
               ),
             ],
           ),
@@ -352,11 +365,13 @@ class _RecetaCard extends StatelessWidget {
                     : _placeholder(),
                 // Velo sutil inferior para legibilidad si se necesitara texto sobre imagen
                 Positioned(
-                  top: 14, right: 14,
+                  top: 14,
+                  right: 14,
                   child: GestureDetector(
                     onTap: onFavorito,
                     child: Container(
-                      width: 42, height: 42,
+                      width: 42,
+                      height: 42,
                       decoration: BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
@@ -396,24 +411,30 @@ class _RecetaCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 14),
-                  Row(children: [
-                    _Nutriente(valor: receta.kcal, unidad: 'kcal', label: 'Calorías', icono: Icons.local_fire_department_rounded),
-                    const SizedBox(width: 8),
-                    _Nutriente(valor: receta.proteinaG, unidad: 'g', label: 'Proteína', icono: Icons.bolt_rounded),
-                    const SizedBox(width: 8),
-                    _Nutriente(valor: receta.fibraG, unidad: 'g', label: 'Fibra', icono: Icons.eco_rounded),
-                  ]),
+                  NutrienteRingRow(
+                    kcal: receta.kcal,
+                    proteinaG: receta.proteinaG,
+                    fibraG: receta.fibraG,
+                  ),
                   const Spacer(),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _NavCircle(icon: Icons.arrow_back_ios_new_rounded, enabled: onAnterior != null, onTap: onAnterior),
+                      _NavCircle(
+                          icon: Icons.arrow_back_ios_new_rounded,
+                          enabled: onAnterior != null,
+                          onTap: onAnterior),
                       Text(
                         'Toca para ver el detalle',
                         style: TextStyle(
-                            color: AppTheme.grisTexto, fontSize: 12, fontStyle: FontStyle.italic),
+                            color: AppTheme.grisTexto,
+                            fontSize: 12,
+                            fontStyle: FontStyle.italic),
                       ),
-                      _NavCircle(icon: Icons.arrow_forward_ios_rounded, enabled: true, onTap: onSiguiente),
+                      _NavCircle(
+                          icon: Icons.arrow_forward_ios_rounded,
+                          enabled: true,
+                          onTap: onSiguiente),
                     ],
                   ),
                 ],
@@ -427,8 +448,7 @@ class _RecetaCard extends StatelessWidget {
 
   Widget _placeholder() => Container(
         color: AppTheme.salvia,
-        child: const Center(
-            child: Text('🥗', style: TextStyle(fontSize: 48))),
+        child: const Center(child: Text('🥗', style: TextStyle(fontSize: 48))),
       );
 }
 
@@ -436,57 +456,23 @@ class _NavCircle extends StatelessWidget {
   final IconData icon;
   final bool enabled;
   final VoidCallback? onTap;
-  const _NavCircle({required this.icon, required this.enabled, required this.onTap});
+  const _NavCircle(
+      {required this.icon, required this.enabled, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 36, height: 36,
+        width: 36,
+        height: 36,
         decoration: BoxDecoration(
           color: enabled ? AppTheme.salvia : Colors.transparent,
           shape: BoxShape.circle,
         ),
-        child: Icon(icon, size: 16, color: enabled ? AppTheme.bosque : const Color(0xFFD8D8D0)),
-      ),
-    );
-  }
-}
-
-class _Nutriente extends StatelessWidget {
-  final double? valor;
-  final String unidad;
-  final String label;
-  final IconData icono;
-
-  const _Nutriente(
-      {required this.valor, required this.unidad, required this.label, required this.icono});
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: AppTheme.salvia,
-          borderRadius: BorderRadius.circular(AppTheme.radioChico),
-        ),
-        child: Column(
-          children: [
-            Icon(icono, size: 15, color: AppTheme.musgo),
-            const SizedBox(height: 3),
-            Text(
-              valor != null ? '${valor!.toStringAsFixed(1)}$unidad' : '-',
-              style: const TextStyle(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 13,
-                  color: AppTheme.bosque),
-            ),
-            Text(label,
-                style: const TextStyle(fontSize: 9.5, color: AppTheme.grisTexto)),
-          ],
-        ),
+        child: Icon(icon,
+            size: 16,
+            color: enabled ? AppTheme.bosque : const Color(0xFFD8D8D0)),
       ),
     );
   }
