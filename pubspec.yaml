@@ -19,6 +19,9 @@ dependencies:
   # Manejo de variables de entorno
   flutter_dotenv: ^5.1.0
 
+  # Tipografía (Fraunces + Manrope)
+  google_fonts: ^6.2.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

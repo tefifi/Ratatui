@@ -5,6 +5,7 @@ import '../../../data/repositories/remote/supabase_favorito_repository.dart';
 import '../../../data/utils/supabase_client.dart';
 import '../../../domain/entities/receta.dart';
 import '../../../domain/usecases/usecases.dart';
+import '../../styles/app_theme.dart';
 import '../detalle/detalle_page.dart';
 
 class FavoritosPage extends StatefulWidget {
@@ -47,18 +48,26 @@ class _FavoritosPageState extends State<FavoritosPage> {
         actions: [
           if (!_loading)
             Padding(
-              padding: const EdgeInsets.only(right: 16),
+              padding: const EdgeInsets.only(right: 20),
               child: Center(
-                child: Text(
-                  '${_favoritos.length} recetas',
-                  style: const TextStyle(fontSize: 13),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppTheme.salvia,
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                  child: Text(
+                    '${_favoritos.length} recetas',
+                    style: const TextStyle(
+                        fontSize: 12, color: AppTheme.musgo, fontWeight: FontWeight.w700),
+                  ),
                 ),
               ),
             ),
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: AppTheme.bosque))
           : _favoritos.isEmpty
               ? _buildVacio()
               : _buildLista(),
@@ -67,9 +76,9 @@ class _FavoritosPageState extends State<FavoritosPage> {
 
   Widget _buildLista() {
     return ListView.separated(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
       itemCount: _favoritos.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, i) {
         final receta = _favoritos[i];
         return Dismissible(
@@ -77,12 +86,12 @@ class _FavoritosPageState extends State<FavoritosPage> {
           direction: DismissDirection.endToStart,
           background: Container(
             alignment: Alignment.centerRight,
-            padding: const EdgeInsets.only(right: 20),
+            padding: const EdgeInsets.only(right: 24),
             decoration: BoxDecoration(
-              color: Colors.red.shade100,
-              borderRadius: BorderRadius.circular(12),
+              color: const Color(0xFFF6DCDC),
+              borderRadius: BorderRadius.circular(AppTheme.radioTarjeta),
             ),
-            child: const Icon(Icons.delete_outline, color: Colors.red),
+            child: const Icon(Icons.delete_outline_rounded, color: Color(0xFFB3261E)),
           ),
           onDismissed: (_) => _quitarFavorito(receta),
           child: GestureDetector(
@@ -94,18 +103,18 @@ class _FavoritosPageState extends State<FavoritosPage> {
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE8E8E8)),
+                borderRadius: BorderRadius.circular(AppTheme.radioTarjeta),
+                boxShadow: AppTheme.sombraSuave,
               ),
               child: Row(
                 children: [
                   // Thumbnail
                   ClipRRect(
                     borderRadius: const BorderRadius.horizontal(
-                        left: Radius.circular(12)),
+                        left: Radius.circular(AppTheme.radioTarjeta)),
                     child: SizedBox(
-                      width: 80,
-                      height: 80,
+                      width: 84,
+                      height: 84,
                       child: receta.imagenUrl.isNotEmpty
                           ? Image.network(receta.imagenUrl,
                               fit: BoxFit.cover,
@@ -118,36 +127,37 @@ class _FavoritosPageState extends State<FavoritosPage> {
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10),
+                          horizontal: 14, vertical: 12),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             receta.nombre,
                             style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14),
+                                fontWeight: FontWeight.w700,
+                                fontSize: 14.5,
+                                color: AppTheme.carbon),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 6),
                           Text(
                             [
                               if (receta.kcal != null)
                                 '${receta.kcal!.toStringAsFixed(0)} kcal',
                               if (receta.proteinaG != null)
                                 '${receta.proteinaG!.toStringAsFixed(1)}g prot',
-                            ].join(' · '),
+                            ].join('  ·  '),
                             style: const TextStyle(
-                                color: Colors.grey, fontSize: 12),
+                                color: AppTheme.grisTexto, fontSize: 12),
                           ),
                         ],
                       ),
                     ),
                   ),
-                  const Icon(Icons.chevron_right,
-                      color: Colors.grey, size: 20),
-                  const SizedBox(width: 8),
+                  const Icon(Icons.chevron_right_rounded,
+                      color: AppTheme.grisTexto, size: 22),
+                  const SizedBox(width: 10),
                 ],
               ),
             ),
@@ -158,23 +168,26 @@ class _FavoritosPageState extends State<FavoritosPage> {
   }
 
   Widget _thumbPlaceholder() => Container(
-        color: const Color(0xFFC0DD97),
+        color: AppTheme.salvia,
         child: const Center(
             child: Text('🥗', style: TextStyle(fontSize: 24))),
       );
 
-  Widget _buildVacio() => const Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('🤍', style: TextStyle(fontSize: 48)),
-            SizedBox(height: 12),
-            Text('Sin favoritos aún',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-            SizedBox(height: 8),
-            Text('Guarda recetas tocando el corazón',
-                style: TextStyle(color: Colors.grey, fontSize: 13)),
-          ],
+  Widget _buildVacio() => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('🤍', style: TextStyle(fontSize: 48)),
+              const SizedBox(height: 14),
+              const Text('Sin favoritos aún',
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppTheme.carbon)),
+              const SizedBox(height: 8),
+              const Text('Guarda recetas tocando el corazón',
+                  style: TextStyle(color: AppTheme.grisTexto, fontSize: 13)),
+            ],
+          ),
         ),
       );
 }

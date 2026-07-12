@@ -7,6 +7,7 @@ import '../../../data/utils/supabase_client.dart';
 import '../../../domain/entities/padecimiento.dart';
 import '../../../domain/entities/profile.dart';
 import '../../../domain/usecases/usecases.dart';
+import '../../styles/app_theme.dart';
 import '../recetas/recetas_page.dart';
 
 class PerfilPage extends StatefulWidget {
@@ -116,15 +117,15 @@ class _PerfilPageState extends State<PerfilPage> {
         actions: [
           if (!widget.esPrimeraVez)
             IconButton(
-              icon: const Icon(Icons.logout),
+              icon: const Icon(Icons.logout_rounded),
               onPressed: _cerrarSesion,
             ),
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: AppTheme.bosque))
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -132,53 +133,53 @@ class _PerfilPageState extends State<PerfilPage> {
                   Center(
                     child: Column(
                       children: [
-                        CircleAvatar(
-                          radius: 36,
-                          backgroundColor: const Color(0xFF7BBF3A),
-                          child: Text(
-                            (_profile?.nombre.isNotEmpty == true)
-                                ? _profile!.nombre[0].toUpperCase()
-                                : '?',
-                            style: const TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF2D5016)),
+                        Container(
+                          width: 84, height: 84,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppTheme.bosque,
+                            boxShadow: AppTheme.sombraSuave,
+                          ),
+                          child: Center(
+                            child: Text(
+                              (_profile?.nombre.isNotEmpty == true)
+                                  ? _profile!.nombre[0].toUpperCase()
+                                  : '?',
+                              style: Theme.of(context).textTheme.displayMedium
+                                  ?.copyWith(color: Colors.white, fontSize: 32),
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 12),
                         Text(
                           _profile?.nombre ?? '',
-                          style: const TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
+                          style: Theme.of(context).textTheme.headlineSmall,
                         ),
                         if (_profile?.imc != null) ...[
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 4),
+                                horizontal: 14, vertical: 6),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFEAF3DE),
+                              color: AppTheme.salvia,
                               borderRadius: BorderRadius.circular(99),
-                              border: Border.all(color: const Color(0xFFC0DD97)),
                             ),
                             child: Text(
-                              'IMC: ${_profile!.imc!.toStringAsFixed(1)} — ${_profile!.imcCategoria}',
+                              'IMC ${_profile!.imc!.toStringAsFixed(1)} · ${_profile!.imcCategoria}',
                               style: const TextStyle(
                                   fontSize: 12,
-                                  color: Color(0xFF27500A),
-                                  fontWeight: FontWeight.w500),
+                                  color: AppTheme.bosque,
+                                  fontWeight: FontWeight.w700),
                             ),
                           ),
                         ],
                       ],
                     ),
                   ),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 32),
 
                   // Medidas
-                  const Text('Medidas',
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text('MEDIDAS', style: AppTheme.eyebrow),
                   const SizedBox(height: 12),
                   Row(children: [
                     Expanded(
@@ -187,7 +188,7 @@ class _PerfilPageState extends State<PerfilPage> {
                         keyboardType: TextInputType.number,
                         decoration: const InputDecoration(
                           labelText: 'Peso (kg)',
-                          prefixIcon: Icon(Icons.monitor_weight_outlined),
+                          prefixIcon: Icon(Icons.monitor_weight_outlined, color: AppTheme.musgo),
                         ),
                       ),
                     ),
@@ -198,23 +199,21 @@ class _PerfilPageState extends State<PerfilPage> {
                         keyboardType: TextInputType.number,
                         decoration: const InputDecoration(
                           labelText: 'Altura (cm)',
-                          prefixIcon: Icon(Icons.height),
+                          prefixIcon: Icon(Icons.height_rounded, color: AppTheme.musgo),
                         ),
                       ),
                     ),
                   ]),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 28),
 
                   // Padecimientos
-                  const Text('Mis padecimientos',
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 16)),
-                  const SizedBox(height: 4),
+                  Text('MIS PADECIMIENTOS', style: AppTheme.eyebrow),
+                  const SizedBox(height: 6),
                   const Text(
                     'Selecciona todos los que apliquen',
-                    style: TextStyle(color: Colors.grey, fontSize: 13),
+                    style: TextStyle(color: AppTheme.grisTexto, fontSize: 13),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 14),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
@@ -232,20 +231,19 @@ class _PerfilPageState extends State<PerfilPage> {
                             }
                           });
                         },
-                        selectedColor: const Color(0xFFEAF3DE),
-                        checkmarkColor: const Color(0xFF2D5016),
+                        backgroundColor: Colors.white,
+                        selectedColor: AppTheme.bosque,
+                        checkmarkColor: Colors.white,
+                        side: BorderSide(color: activo ? AppTheme.bosque : AppTheme.borde),
                         labelStyle: TextStyle(
-                          color: activo
-                              ? const Color(0xFF2D5016)
-                              : Colors.black87,
-                          fontWeight: activo
-                              ? FontWeight.w600
-                              : FontWeight.normal,
+                          color: activo ? Colors.white : AppTheme.carbon,
+                          fontWeight: activo ? FontWeight.w700 : FontWeight.w500,
+                          fontSize: 13,
                         ),
                       );
                     }).toList(),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 36),
 
                   // Botón guardar
                   ElevatedButton(

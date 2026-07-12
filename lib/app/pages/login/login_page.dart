@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../data/utils/supabase_client.dart';
+import '../../styles/app_theme.dart';
 import '../perfil/perfil_page.dart';
 import '../recetas/recetas_page.dart';
 
@@ -24,8 +25,8 @@ class _LoginPageState extends State<LoginPage> {
   String? _error;
 
   // Paleta centralizada
-  static const _verde = Color(0xFF2D5C2B);
-  static const _naranja = Color(0xFFFF8A00);
+  static const _verde = AppTheme.bosque;
+  static const _naranja = AppTheme.mostaza;
 
   @override
   void initState() {
@@ -105,11 +106,7 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   Text(
                     _esRegistro ? 'Crear cuenta' : 'Iniciar sesión',
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1A1A1A),
-                    ),
+                    style: Theme.of(context).textTheme.displayMedium,
                   ),
                   const SizedBox(height: 24),
 

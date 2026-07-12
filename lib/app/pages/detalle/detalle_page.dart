@@ -6,6 +6,7 @@ import '../../../data/repositories/remote/supabase_favorito_repository.dart';
 import '../../../data/utils/supabase_client.dart';
 import '../../../domain/entities/receta.dart';
 import '../../../domain/usecases/usecases.dart';
+import '../../styles/app_theme.dart';
 
 class DetallePage extends StatefulWidget {
   final Receta receta;
@@ -53,22 +54,32 @@ class _DetallePageState extends State<DetallePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.lino,
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: AppTheme.bosque))
           : _error != null
-              ? Center(child: Text(_error!))
-              : _buildDetalle(),
+              ? Center(child: Text(_error!, style: const TextStyle(color: AppTheme.grisTexto)))
+              : _buildDetalle(context),
     );
   }
 
-  Widget _buildDetalle() {
+  Widget _buildDetalle(BuildContext context) {
     final r = _detalle!;
     return CustomScrollView(
       slivers: [
         // App bar con imagen
         SliverAppBar(
-          expandedHeight: 260,
+          expandedHeight: 280,
           pinned: true,
+          backgroundColor: AppTheme.lino,
+          surfaceTintColor: Colors.transparent,
+          leading: Padding(
+            padding: const EdgeInsets.all(8),
+            child: _CircleButton(
+              icon: Icons.arrow_back_rounded,
+              onTap: () => Navigator.pop(context),
+            ),
+          ),
           flexibleSpace: FlexibleSpaceBar(
             background: Stack(
               fit: StackFit.expand,
@@ -84,9 +95,11 @@ class _DetallePageState extends State<DetallePage> {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        Colors.black.withOpacity(0.4),
+                        Colors.black.withOpacity(0.35),
                         Colors.transparent,
+                        Colors.black.withOpacity(0.15),
                       ],
+                      stops: const [0, 0.5, 1],
                     ),
                   ),
                 ),
@@ -94,40 +107,38 @@ class _DetallePageState extends State<DetallePage> {
             ),
           ),
           actions: [
-            IconButton(
-              icon: Icon(
-                r.esFavorito ? Icons.favorite : Icons.favorite_border,
-                color: Colors.white,
+            Padding(
+              padding: const EdgeInsets.only(right: 8, top: 8, bottom: 8),
+              child: _CircleButton(
+                icon: r.esFavorito ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                iconColor: r.esFavorito ? AppTheme.mostaza : AppTheme.grisTexto,
+                onTap: _toggleFavorito,
               ),
-              onPressed: _toggleFavorito,
             ),
           ],
         ),
 
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text('RECETA RECOMENDADA', style: AppTheme.eyebrow),
+                const SizedBox(height: 6),
                 // Nombre
-                Text(r.nombre,
-                    style: const TextStyle(
-                        fontSize: 22, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 16),
+                Text(r.nombre, style: Theme.of(context).textTheme.displayMedium),
+                const SizedBox(height: 20),
 
                 // Nutrientes
                 Row(children: [
-                  _NutrienteChip(
-                      valor: r.kcal, unidad: 'kcal', label: 'Calorías'),
-                  const SizedBox(width: 8),
-                  _NutrienteChip(
-                      valor: r.proteinaG, unidad: 'g', label: 'Proteína'),
-                  const SizedBox(width: 8),
-                  _NutrienteChip(
-                      valor: r.fibraG, unidad: 'g', label: 'Fibra'),
+                  _NutrienteChip(valor: r.kcal, unidad: 'kcal', label: 'Calorías', icono: Icons.local_fire_department_rounded),
+                  const SizedBox(width: 10),
+                  _NutrienteChip(valor: r.proteinaG, unidad: 'g', label: 'Proteína', icono: Icons.bolt_rounded),
+                  const SizedBox(width: 10),
+                  _NutrienteChip(valor: r.fibraG, unidad: 'g', label: 'Fibra', icono: Icons.eco_rounded),
                 ]),
-                const SizedBox(height: 24),
+                const SizedBox(height: 28),
 
                 // Ingredientes
                 _Acordeon(
@@ -135,24 +146,25 @@ class _DetallePageState extends State<DetallePage> {
                   icono: Icons.shopping_basket_outlined,
                   child: r.ingredientes.isEmpty
                       ? const Text('Sin información',
-                          style: TextStyle(color: Colors.grey))
+                          style: TextStyle(color: AppTheme.grisTexto))
                       : Column(
                           children: r.ingredientes
                               .map((ing) => Padding(
                                     padding: const EdgeInsets.symmetric(
-                                        vertical: 5),
+                                        vertical: 6),
                                     child: Row(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        const Icon(Icons.check_circle,
-                                            size: 16,
-                                            color: Color(0xFF7BBF3A)),
-                                        const SizedBox(width: 8),
+                                        const Padding(
+                                          padding: EdgeInsets.only(top: 3),
+                                          child: Icon(Icons.circle,
+                                              size: 6, color: AppTheme.mostaza),
+                                        ),
+                                        const SizedBox(width: 10),
                                         Expanded(
                                           child: Text(ing,
-                                              style: const TextStyle(
-                                                  fontSize: 14)),
+                                              style: const TextStyle(fontSize: 14, height: 1.4)),
                                         ),
                                       ],
                                     ),
@@ -160,7 +172,7 @@ class _DetallePageState extends State<DetallePage> {
                               .toList(),
                         ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 14),
 
                 // Preparación
                 _Acordeon(
@@ -168,11 +180,11 @@ class _DetallePageState extends State<DetallePage> {
                   icono: Icons.menu_book_outlined,
                   child: r.instrucciones == null || r.instrucciones!.isEmpty
                       ? const Text('Sin información',
-                          style: TextStyle(color: Colors.grey))
+                          style: TextStyle(color: AppTheme.grisTexto))
                       : Text(
                           r.instrucciones!,
                           style: const TextStyle(
-                              fontSize: 14, height: 1.6),
+                              fontSize: 14, height: 1.7, color: AppTheme.carbon),
                         ),
                 ),
                 const SizedBox(height: 32),
@@ -185,40 +197,68 @@ class _DetallePageState extends State<DetallePage> {
   }
 
   Widget _placeholder() => Container(
-        color: const Color(0xFFC0DD97),
+        color: AppTheme.salvia,
         child: const Center(
             child: Text('🥗', style: TextStyle(fontSize: 64))),
       );
+}
+
+class _CircleButton extends StatelessWidget {
+  final IconData icon;
+  final Color? iconColor;
+  final VoidCallback onTap;
+  const _CircleButton({required this.icon, required this.onTap, this.iconColor});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40, height: 40,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          boxShadow: const [
+            BoxShadow(color: Color(0x22000000), blurRadius: 8, offset: Offset(0, 2)),
+          ],
+        ),
+        child: Icon(icon, size: 20, color: iconColor ?? AppTheme.bosque),
+      ),
+    );
+  }
 }
 
 class _NutrienteChip extends StatelessWidget {
   final double? valor;
   final String unidad;
   final String label;
+  final IconData icono;
 
   const _NutrienteChip(
-      {required this.valor, required this.unidad, required this.label});
+      {required this.valor, required this.unidad, required this.label, required this.icono});
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: const Color(0xFFF0F7E6),
-          borderRadius: BorderRadius.circular(12),
+          color: AppTheme.salvia,
+          borderRadius: BorderRadius.circular(AppTheme.radioChico),
         ),
         child: Column(
           children: [
+            Icon(icono, size: 17, color: AppTheme.musgo),
+            const SizedBox(height: 4),
             Text(
               valor != null ? '${valor!.toStringAsFixed(1)}$unidad' : '-',
               style: const TextStyle(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w800,
                   fontSize: 14,
-                  color: Color(0xFF2D5016)),
+                  color: AppTheme.bosque),
             ),
             Text(label,
-                style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                style: const TextStyle(fontSize: 10.5, color: AppTheme.grisTexto)),
           ],
         ),
       ),
@@ -245,33 +285,32 @@ class _AcordeonState extends State<_Acordeon> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: const Color(0xFFE0E0E0)),
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(AppTheme.radioTarjeta),
+        boxShadow: AppTheme.sombraSuave,
       ),
       child: Column(
         children: [
           InkWell(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppTheme.radioTarjeta),
             onTap: () => setState(() => _abierto = !_abierto),
             child: Padding(
               padding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 14),
+                  horizontal: 18, vertical: 16),
               child: Row(
                 children: [
                   Icon(widget.icono,
-                      size: 20, color: const Color(0xFF2D5016)),
+                      size: 20, color: AppTheme.bosque),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(widget.titulo,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 15)),
+                        style: Theme.of(context).textTheme.titleMedium),
                   ),
                   Icon(
                     _abierto
-                        ? Icons.keyboard_arrow_up
-                        : Icons.keyboard_arrow_down,
-                    color: Colors.grey,
+                        ? Icons.keyboard_arrow_up_rounded
+                        : Icons.keyboard_arrow_down_rounded,
+                    color: AppTheme.grisTexto,
                   ),
                 ],
               ),
@@ -279,7 +318,7 @@ class _AcordeonState extends State<_Acordeon> {
           ),
           if (_abierto)
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
               child: widget.child,
             ),
         ],
