@@ -243,7 +243,7 @@ class _SeccionTabsState extends State<_SeccionTabs> {
           width: double.infinity,
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppTheme.salvia,
             borderRadius: BorderRadius.circular(AppTheme.radioTarjeta),
             boxShadow: AppTheme.sombraSuave,
           ),

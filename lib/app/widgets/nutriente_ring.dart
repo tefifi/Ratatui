@@ -75,7 +75,7 @@ class NutrienteRingRow extends StatelessWidget {
     if (!sobreImagen) {
       return Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.crema,
           borderRadius: BorderRadius.circular(AppTheme.radioTarjeta),
           border: Border.all(color: AppTheme.borde),
         ),

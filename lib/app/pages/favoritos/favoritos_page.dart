@@ -31,7 +31,10 @@ class _FavoritosPageState extends State<FavoritosPage> {
     setState(() => _loading = true);
     final userId = supabase.auth.currentUser!.id;
     final favs = await GetFavoritosUseCase(_favoritoRepo).execute(userId);
-    setState(() { _favoritos = favs; _loading = false; });
+    setState(() {
+      _favoritos = favs;
+      _loading = false;
+    });
   }
 
   Future<void> _quitarFavorito(Receta receta) async {
@@ -51,7 +54,8 @@ class _FavoritosPageState extends State<FavoritosPage> {
               padding: const EdgeInsets.only(right: 20),
               child: Center(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: AppTheme.salvia,
                     borderRadius: BorderRadius.circular(99),
@@ -59,7 +63,9 @@ class _FavoritosPageState extends State<FavoritosPage> {
                   child: Text(
                     '${_favoritos.length} recetas',
                     style: const TextStyle(
-                        fontSize: 12, color: AppTheme.musgo, fontWeight: FontWeight.w700),
+                        fontSize: 12,
+                        color: AppTheme.musgo,
+                        fontWeight: FontWeight.w700),
                   ),
                 ),
               ),
@@ -67,7 +73,8 @@ class _FavoritosPageState extends State<FavoritosPage> {
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.bosque))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppTheme.bosque))
           : _favoritos.isEmpty
               ? _buildVacio()
               : _buildLista(),
@@ -91,18 +98,18 @@ class _FavoritosPageState extends State<FavoritosPage> {
               color: const Color(0xFFF6DCDC),
               borderRadius: BorderRadius.circular(AppTheme.radioTarjeta),
             ),
-            child: const Icon(Icons.delete_outline_rounded, color: Color(0xFFB3261E)),
+            child: const Icon(Icons.delete_outline_rounded,
+                color: Color(0xFFB3261E)),
           ),
           onDismissed: (_) => _quitarFavorito(receta),
           child: GestureDetector(
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(
-                  builder: (_) => DetallePage(receta: receta)),
+              MaterialPageRoute(builder: (_) => DetallePage(receta: receta)),
             ).then((_) => _cargarFavoritos()),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppTheme.salvia,
                 borderRadius: BorderRadius.circular(AppTheme.radioTarjeta),
                 boxShadow: AppTheme.sombraSuave,
               ),
@@ -118,8 +125,7 @@ class _FavoritosPageState extends State<FavoritosPage> {
                       child: receta.imagenUrl.isNotEmpty
                           ? Image.network(receta.imagenUrl,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) =>
-                                  _thumbPlaceholder())
+                              errorBuilder: (_, __, ___) => _thumbPlaceholder())
                           : _thumbPlaceholder(),
                     ),
                   ),
@@ -169,8 +175,7 @@ class _FavoritosPageState extends State<FavoritosPage> {
 
   Widget _thumbPlaceholder() => Container(
         color: AppTheme.salvia,
-        child: const Center(
-            child: Text('🥗', style: TextStyle(fontSize: 24))),
+        child: const Center(child: Text('🥗', style: TextStyle(fontSize: 24))),
       );
 
   Widget _buildVacio() => Center(
@@ -182,7 +187,10 @@ class _FavoritosPageState extends State<FavoritosPage> {
               const Text('🤍', style: TextStyle(fontSize: 48)),
               const SizedBox(height: 14),
               const Text('Sin favoritos aún',
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppTheme.carbon)),
+                  style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.carbon)),
               const SizedBox(height: 8),
               const Text('Guarda recetas tocando el corazón',
                   style: TextStyle(color: AppTheme.grisTexto, fontSize: 13)),

@@ -183,27 +183,32 @@ class _RecetasPageState extends State<RecetasPage> {
               : _recetas.isEmpty
                   ? _buildVacio()
                   : _buildSwipeCard(),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _navIndex,
-        onTap: (i) {
-          if (i == 0) {
-            setState(() => _navIndex = 0);
-          } else if (i == 1) {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (_) => const FavoritosPage()));
-          } else if (i == 2) {
-            Navigator.push(
-                context, MaterialPageRoute(builder: (_) => const PerfilPage()));
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(
-              icon: Icon(Icons.restaurant_menu_rounded), label: 'Recetas'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.favorite_border_rounded), label: 'Favoritos'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline_rounded), label: 'Perfil'),
-        ],
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          border: Border(top: BorderSide(color: AppTheme.borde, width: 1)),
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _navIndex,
+          onTap: (i) {
+            if (i == 0) {
+              setState(() => _navIndex = 0);
+            } else if (i == 1) {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const FavoritosPage()));
+            } else if (i == 2) {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const PerfilPage()));
+            }
+          },
+          items: const [
+            BottomNavigationBarItem(
+                icon: Icon(Icons.restaurant_menu_rounded), label: 'Recetas'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.favorite_border_rounded), label: 'Favoritos'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.person_outline_rounded), label: 'Perfil'),
+          ],
+        ),
       ),
     );
   }

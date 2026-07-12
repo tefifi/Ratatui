@@ -19,10 +19,10 @@ class PerfilPage extends StatefulWidget {
 }
 
 class _PerfilPageState extends State<PerfilPage> {
-  final _pesoCtrl   = TextEditingController();
+  final _pesoCtrl = TextEditingController();
   final _alturaCtrl = TextEditingController();
 
-  final _profileRepo      = SupabaseProfileRepository();
+  final _profileRepo = SupabaseProfileRepository();
   final _padecimientoRepo = SupabasePadecimientoRepository();
 
   Profile? _profile;
@@ -40,7 +40,7 @@ class _PerfilPageState extends State<PerfilPage> {
   Future<void> _cargarDatos() async {
     final userId = supabase.auth.currentUser!.id;
     final profile = await _profileRepo.getProfile(userId);
-    final todos   = await GetPadecimientosUseCase(_padecimientoRepo).execute();
+    final todos = await GetPadecimientosUseCase(_padecimientoRepo).execute();
     final actuales = await _profileRepo.getUserPadecimientos(userId);
 
     setState(() {
@@ -48,7 +48,8 @@ class _PerfilPageState extends State<PerfilPage> {
       _todosLosPadecimientos = todos;
       _seleccionados = actuales.map((p) => p.id).toSet();
       if (profile?.pesoKg != null) _pesoCtrl.text = profile!.pesoKg!.toString();
-      if (profile?.alturaCm != null) _alturaCtrl.text = profile!.alturaCm!.toString();
+      if (profile?.alturaCm != null)
+        _alturaCtrl.text = profile!.alturaCm!.toString();
       _loading = false;
     });
   }
@@ -57,7 +58,7 @@ class _PerfilPageState extends State<PerfilPage> {
     setState(() => _guardando = true);
     try {
       final userId = supabase.auth.currentUser!.id;
-      final peso   = double.tryParse(_pesoCtrl.text);
+      final peso = double.tryParse(_pesoCtrl.text);
       final altura = double.tryParse(_alturaCtrl.text);
 
       await SaveProfileUseCase(_profileRepo).execute(
@@ -123,7 +124,8 @@ class _PerfilPageState extends State<PerfilPage> {
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.bosque))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppTheme.bosque))
           : SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
               child: Column(
@@ -134,7 +136,8 @@ class _PerfilPageState extends State<PerfilPage> {
                     child: Column(
                       children: [
                         Container(
-                          width: 84, height: 84,
+                          width: 84,
+                          height: 84,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: AppTheme.bosque,
@@ -145,7 +148,9 @@ class _PerfilPageState extends State<PerfilPage> {
                               (_profile?.nombre.isNotEmpty == true)
                                   ? _profile!.nombre[0].toUpperCase()
                                   : '?',
-                              style: Theme.of(context).textTheme.displayMedium
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .displayMedium
                                   ?.copyWith(color: Colors.white, fontSize: 32),
                             ),
                           ),
@@ -188,7 +193,8 @@ class _PerfilPageState extends State<PerfilPage> {
                         keyboardType: TextInputType.number,
                         decoration: const InputDecoration(
                           labelText: 'Peso (kg)',
-                          prefixIcon: Icon(Icons.monitor_weight_outlined, color: AppTheme.musgo),
+                          prefixIcon: Icon(Icons.monitor_weight_outlined,
+                              color: AppTheme.musgo),
                         ),
                       ),
                     ),
@@ -199,7 +205,8 @@ class _PerfilPageState extends State<PerfilPage> {
                         keyboardType: TextInputType.number,
                         decoration: const InputDecoration(
                           labelText: 'Altura (cm)',
-                          prefixIcon: Icon(Icons.height_rounded, color: AppTheme.musgo),
+                          prefixIcon:
+                              Icon(Icons.height_rounded, color: AppTheme.musgo),
                         ),
                       ),
                     ),
@@ -231,13 +238,15 @@ class _PerfilPageState extends State<PerfilPage> {
                             }
                           });
                         },
-                        backgroundColor: Colors.white,
+                        backgroundColor: AppTheme.crema,
                         selectedColor: AppTheme.bosque,
                         checkmarkColor: Colors.white,
-                        side: BorderSide(color: activo ? AppTheme.bosque : AppTheme.borde),
+                        side: BorderSide(
+                            color: activo ? AppTheme.bosque : AppTheme.borde),
                         labelStyle: TextStyle(
                           color: activo ? Colors.white : AppTheme.carbon,
-                          fontWeight: activo ? FontWeight.w700 : FontWeight.w500,
+                          fontWeight:
+                              activo ? FontWeight.w700 : FontWeight.w500,
                           fontSize: 13,
                         ),
                       );
