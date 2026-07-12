@@ -5,17 +5,23 @@ import '../styles/app_theme.dart';
 /// Fila de estadísticas nutricionales con anillos de progreso, inspirada en
 /// tarjetas de apps de fitness: cada nutriente muestra un anillo coloreado
 /// cuyo relleno representa el % de un valor de referencia diario aproximado,
-/// separados por líneas divisoras finas dentro de una sola tarjeta.
+/// separados por líneas divisoras finas.
+///
+/// [sobreImagen] cambia la variante visual: tarjeta blanca con borde (uso
+/// normal, ej. detalle de receta) o versión flotante translúcida con texto
+/// blanco, pensada para superponerse directamente sobre una fotografía.
 class NutrienteRingRow extends StatelessWidget {
   final double? kcal;
   final double? proteinaG;
   final double? fibraG;
+  final bool sobreImagen;
 
   const NutrienteRingRow({
     super.key,
     required this.kcal,
     required this.proteinaG,
     required this.fibraG,
+    this.sobreImagen = false,
   });
 
   // Valores de referencia diaria aproximados, solo para dar contexto visual
@@ -26,60 +32,82 @@ class NutrienteRingRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final contenido = Row(
+      children: [
+        Expanded(
+          child: _NutrienteRing(
+            valor: kcal,
+            unidad: '',
+            label: 'Calorías',
+            color: sobreImagen ? AppTheme.mostaza : AppTheme.mostaza,
+            porcentaje: kcal != null ? (kcal! / _refKcal).clamp(0.04, 1.0) : 0,
+            sobreImagen: sobreImagen,
+          ),
+        ),
+        _DivisorVertical(sobreImagen: sobreImagen),
+        Expanded(
+          child: _NutrienteRing(
+            valor: proteinaG,
+            unidad: 'g',
+            label: 'Proteína',
+            color: sobreImagen ? const Color(0xFF8FD9B6) : AppTheme.bosque,
+            porcentaje: proteinaG != null
+                ? (proteinaG! / _refProteina).clamp(0.04, 1.0)
+                : 0,
+            sobreImagen: sobreImagen,
+          ),
+        ),
+        _DivisorVertical(sobreImagen: sobreImagen),
+        Expanded(
+          child: _NutrienteRing(
+            valor: fibraG,
+            unidad: 'g',
+            label: 'Fibra',
+            color: sobreImagen ? const Color(0xFFBFE28A) : AppTheme.musgo,
+            porcentaje:
+                fibraG != null ? (fibraG! / _refFibra).clamp(0.04, 1.0) : 0,
+            sobreImagen: sobreImagen,
+          ),
+        ),
+      ],
+    );
+
+    if (!sobreImagen) {
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(AppTheme.radioTarjeta),
+          border: Border.all(color: AppTheme.borde),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: contenido,
+      );
+    }
+
+    // Variante flotante translúcida sobre imagen (estilo "vidrio esmerilado").
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppTheme.radioTarjeta),
-        border: Border.all(color: AppTheme.borde),
+        color: Colors.black.withOpacity(0.28),
+        borderRadius: BorderRadius.circular(AppTheme.radioChico),
+        border: Border.all(color: Colors.white.withOpacity(0.18)),
       ),
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Row(
-        children: [
-          Expanded(
-            child: _NutrienteRing(
-              valor: kcal,
-              unidad: '',
-              label: 'Calorías',
-              color: AppTheme.mostaza,
-              porcentaje:
-                  kcal != null ? (kcal! / _refKcal).clamp(0.04, 1.0) : 0,
-            ),
-          ),
-          const _DivisorVertical(),
-          Expanded(
-            child: _NutrienteRing(
-              valor: proteinaG,
-              unidad: 'g',
-              label: 'Proteína',
-              color: AppTheme.bosque,
-              porcentaje: proteinaG != null
-                  ? (proteinaG! / _refProteina).clamp(0.04, 1.0)
-                  : 0,
-            ),
-          ),
-          const _DivisorVertical(),
-          Expanded(
-            child: _NutrienteRing(
-              valor: fibraG,
-              unidad: 'g',
-              label: 'Fibra',
-              color: AppTheme.musgo,
-              porcentaje:
-                  fibraG != null ? (fibraG! / _refFibra).clamp(0.04, 1.0) : 0,
-            ),
-          ),
-        ],
-      ),
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: contenido,
     );
   }
 }
 
 class _DivisorVertical extends StatelessWidget {
-  const _DivisorVertical();
+  final bool sobreImagen;
+  const _DivisorVertical({required this.sobreImagen});
   @override
-  Widget build(BuildContext context) => const SizedBox(
-        height: 56,
-        child: VerticalDivider(color: AppTheme.borde, thickness: 1, width: 1),
+  Widget build(BuildContext context) => SizedBox(
+        height: sobreImagen ? 46 : 56,
+        child: VerticalDivider(
+          color: sobreImagen ? Colors.white.withOpacity(0.25) : AppTheme.borde,
+          thickness: 1,
+          width: 1,
+        ),
       );
 }
 
@@ -89,6 +117,7 @@ class _NutrienteRing extends StatelessWidget {
   final String label;
   final Color color;
   final double porcentaje;
+  final bool sobreImagen;
 
   const _NutrienteRing({
     required this.valor,
@@ -96,6 +125,7 @@ class _NutrienteRing extends StatelessWidget {
     required this.label,
     required this.color,
     required this.porcentaje,
+    required this.sobreImagen,
   });
 
   @override
@@ -105,39 +135,49 @@ class _NutrienteRing extends StatelessWidget {
             ? valor!.toStringAsFixed(0)
             : '${valor!.toStringAsFixed(1)}$unidad')
         : '-';
+    final size = sobreImagen ? 44.0 : 52.0;
     return Column(
       children: [
         SizedBox(
-          width: 52,
-          height: 52,
+          width: size,
+          height: size,
           child: Stack(
             alignment: Alignment.center,
             children: [
               SizedBox(
-                width: 52,
-                height: 52,
+                width: size,
+                height: size,
                 child: CircularProgressIndicator(
                   value: porcentaje,
-                  strokeWidth: 4.5,
+                  strokeWidth: 4,
                   strokeCap: StrokeCap.round,
-                  backgroundColor: color.withOpacity(0.15),
+                  backgroundColor: sobreImagen
+                      ? Colors.white.withOpacity(0.25)
+                      : color.withOpacity(0.15),
                   valueColor: AlwaysStoppedAnimation(color),
                 ),
               ),
               Text(
                 texto,
-                style: const TextStyle(
-                  fontSize: 11.5,
+                style: TextStyle(
+                  fontSize: sobreImagen ? 10.5 : 11.5,
                   fontWeight: FontWeight.w800,
-                  color: AppTheme.carbon,
+                  color: sobreImagen ? Colors.white : AppTheme.carbon,
                 ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 8),
-        Text(label,
-            style: const TextStyle(fontSize: 11.5, color: AppTheme.grisTexto)),
+        const SizedBox(height: 6),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10.5,
+            color: sobreImagen
+                ? Colors.white.withOpacity(0.85)
+                : AppTheme.grisTexto,
+          ),
+        ),
       ],
     );
   }

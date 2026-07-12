@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'app/pages/login/login_page.dart';
+import 'app/pages/splash/splash_page.dart';
 import 'app/styles/app_theme.dart';
 
 Future<void> main() async {
@@ -27,7 +27,7 @@ class LinwiniApp extends StatelessWidget {
       title: 'Ratatui',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      home: const LoginPage(),
+      home: const SplashPage(),
     );
   }
 }

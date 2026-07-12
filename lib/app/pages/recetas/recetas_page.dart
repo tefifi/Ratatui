@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -142,13 +144,14 @@ class _RecetasPageState extends State<RecetasPage> {
     return Scaffold(
       appBar: AppBar(
         title: Row(children: [
-          Container(
-            width: 30,
-            height: 30,
-            decoration: const BoxDecoration(
-                color: AppTheme.mostaza, shape: BoxShape.circle),
-            child:
-                const Center(child: Text('🌿', style: TextStyle(fontSize: 15))),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(9),
+            child: Image.asset(
+              'assets/images/logo_ratatui.png',
+              width: 30,
+              height: 30,
+              fit: BoxFit.cover,
+            ),
           ),
           const SizedBox(width: 10),
           const Text('Ratatui'),
@@ -336,109 +339,147 @@ class _RecetaCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
         borderRadius: BorderRadius.circular(AppTheme.radioTarjeta),
         boxShadow: AppTheme.sombraSuave,
       ),
       clipBehavior: Clip.antiAlias,
-      child: Column(
+      child: Stack(
+        fit: StackFit.expand,
         children: [
-          Expanded(
-            flex: 5,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                receta.imagenUrl.isNotEmpty
-                    ? Image.network(
-                        receta.imagenUrl,
-                        fit: BoxFit.cover,
-                        loadingBuilder: (_, child, progress) => progress == null
-                            ? child
-                            : Container(
-                                color: AppTheme.salvia,
-                                child: const Center(
-                                    child: CircularProgressIndicator(
-                                        color: AppTheme.bosque)),
-                              ),
-                        errorBuilder: (_, __, ___) => _placeholder(),
-                      )
-                    : _placeholder(),
-                // Velo sutil inferior para legibilidad si se necesitara texto sobre imagen
-                Positioned(
-                  top: 14,
-                  right: 14,
-                  child: GestureDetector(
-                    onTap: onFavorito,
-                    child: Container(
-                      width: 42,
-                      height: 42,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: const [
-                          BoxShadow(
-                              color: Color(0x22000000),
-                              blurRadius: 8,
-                              offset: Offset(0, 2)),
-                        ],
-                      ),
-                      child: Icon(
-                        receta.esFavorito
-                            ? Icons.favorite_rounded
-                            : Icons.favorite_border_rounded,
-                        color: receta.esFavorito
-                            ? AppTheme.mostaza
-                            : AppTheme.grisTexto,
-                        size: 22,
-                      ),
+          // Capa de fondo: la misma foto, agrandada y difuminada, para
+          // llenar toda la tarjeta sin dejar bordes vacíos.
+          receta.imagenUrl.isNotEmpty
+              ? ImageFiltered(
+                  imageFilter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+                  child: Transform.scale(
+                    scale: 1.15, // evita el borde translúcido del blur
+                    child: Image.network(
+                      receta.imagenUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _placeholder(),
                     ),
                   ),
+                )
+              : _placeholder(),
+
+          // Capa media: la foto completa, sin recortar, centrada.
+          receta.imagenUrl.isNotEmpty
+              ? Center(
+                  child: Image.network(
+                    receta.imagenUrl,
+                    fit: BoxFit.contain,
+                    loadingBuilder: (_, child, progress) => progress == null
+                        ? child
+                        : const SizedBox(
+                            width: 40,
+                            height: 40,
+                            child:
+                                CircularProgressIndicator(color: Colors.white),
+                          ),
+                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                  ),
+                )
+              : const SizedBox.shrink(),
+
+          // Degradado inferior para que el texto y los anillos sean legibles.
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black.withOpacity(0.15),
+                    Colors.black.withOpacity(0.78),
+                  ],
+                  stops: const [0, 0.45, 1],
                 ),
-              ],
+              ),
             ),
           ),
-          Expanded(
-            flex: 4,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    receta.nombre,
-                    style: Theme.of(context).textTheme.headlineSmall,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 14),
-                  NutrienteRingRow(
-                    kcal: receta.kcal,
-                    proteinaG: receta.proteinaG,
-                    fibraG: receta.fibraG,
-                  ),
-                  const Spacer(),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _NavCircle(
-                          icon: Icons.arrow_back_ios_new_rounded,
-                          enabled: onAnterior != null,
-                          onTap: onAnterior),
-                      Text(
-                        'Toca para ver el detalle',
-                        style: TextStyle(
-                            color: AppTheme.grisTexto,
-                            fontSize: 12,
-                            fontStyle: FontStyle.italic),
-                      ),
-                      _NavCircle(
-                          icon: Icons.arrow_forward_ios_rounded,
-                          enabled: true,
-                          onTap: onSiguiente),
-                    ],
-                  ),
-                ],
+
+          // Capa superior: botón de favorito flotante.
+          Positioned(
+            top: 14,
+            right: 14,
+            child: GestureDetector(
+              onTap: onFavorito,
+              child: Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: const [
+                    BoxShadow(
+                        color: Color(0x22000000),
+                        blurRadius: 8,
+                        offset: Offset(0, 2)),
+                  ],
+                ),
+                child: Icon(
+                  receta.esFavorito
+                      ? Icons.favorite_rounded
+                      : Icons.favorite_border_rounded,
+                  color:
+                      receta.esFavorito ? AppTheme.mostaza : AppTheme.grisTexto,
+                  size: 22,
+                ),
               ),
+            ),
+          ),
+
+          // Capa superior: nombre, anillos y navegación, sobre el degradado.
+          Positioned(
+            left: 20,
+            right: 20,
+            bottom: 18,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  receta.nombre,
+                  style: Theme.of(context)
+                      .textTheme
+                      .headlineSmall
+                      ?.copyWith(color: Colors.white),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 14),
+                NutrienteRingRow(
+                  kcal: receta.kcal,
+                  proteinaG: receta.proteinaG,
+                  fibraG: receta.fibraG,
+                  sobreImagen: true,
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _NavCircle(
+                      icon: Icons.arrow_back_ios_new_rounded,
+                      enabled: onAnterior != null,
+                      onTap: onAnterior,
+                      sobreImagen: true,
+                    ),
+                    Text(
+                      'Toca para ver el detalle',
+                      style: TextStyle(
+                          color: Colors.white.withOpacity(0.85),
+                          fontSize: 12,
+                          fontStyle: FontStyle.italic),
+                    ),
+                    _NavCircle(
+                      icon: Icons.arrow_forward_ios_rounded,
+                      enabled: true,
+                      onTap: onSiguiente,
+                      sobreImagen: true,
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ],
@@ -456,23 +497,29 @@ class _NavCircle extends StatelessWidget {
   final IconData icon;
   final bool enabled;
   final VoidCallback? onTap;
-  const _NavCircle(
-      {required this.icon, required this.enabled, required this.onTap});
+  final bool sobreImagen;
+  const _NavCircle({
+    required this.icon,
+    required this.enabled,
+    required this.onTap,
+    this.sobreImagen = false,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final Color bg = sobreImagen
+        ? (enabled ? Colors.white.withOpacity(0.22) : Colors.transparent)
+        : (enabled ? AppTheme.salvia : Colors.transparent);
+    final Color fg = sobreImagen
+        ? (enabled ? Colors.white : Colors.white.withOpacity(0.35))
+        : (enabled ? AppTheme.bosque : const Color(0xFFD8D8D0));
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: 36,
         height: 36,
-        decoration: BoxDecoration(
-          color: enabled ? AppTheme.salvia : Colors.transparent,
-          shape: BoxShape.circle,
-        ),
-        child: Icon(icon,
-            size: 16,
-            color: enabled ? AppTheme.bosque : const Color(0xFFD8D8D0)),
+        decoration: BoxDecoration(color: bg, shape: BoxShape.circle),
+        child: Icon(icon, size: 16, color: fg),
       ),
     );
   }

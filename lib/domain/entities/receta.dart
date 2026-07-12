@@ -23,15 +23,24 @@ class Receta {
 
   // CORREGIDO: el dominio real es img.spoonacular.com/recipes/
   // complexSearch devuelve solo el nombre de archivo, detail devuelve URL completa
+  //
+  // Además, complexSearch entrega la miniatura más chica (312x231). Al
+  // estirarla con BoxFit.cover en tarjetas grandes se ve borrosa y
+  // mal recortada, así que forzamos el tamaño más grande disponible
+  // (636x393) reemplazando el sufijo de tamaño en el nombre de archivo.
   static String _buildImageUrl(String raw) {
     if (raw.isEmpty) return '';
-    if (raw.startsWith('http')) return raw;
-    return 'https://img.spoonacular.com/recipes/$raw';
+    final conMayorResolucion = raw.replaceFirst(
+      RegExp(r'-\d+x\d+(?=\.\w+$)'),
+      '-636x393',
+    );
+    if (conMayorResolucion.startsWith('http')) return conMayorResolucion;
+    return 'https://img.spoonacular.com/recipes/$conMayorResolucion';
   }
 
   factory Receta.fromSpoonacularSearch(Map<String, dynamic> map) {
-      final rawImage = map['image'] as String? ?? '';
-  print('IMAGE RAW: $rawImage'); // ← agrega esto
+    final rawImage = map['image'] as String? ?? '';
+    print('IMAGE RAW: $rawImage'); // ← agrega esto
     double? getNutrient(String name) {
       final nutrients =
           (map['nutrition']?['nutrients'] as List<dynamic>?) ?? [];
